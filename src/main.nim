@@ -1,5 +1,4 @@
-# This is just an example to get you started. A typical binary package
-# uses this file as the main entry point of the application.
+import geometry
 
-when isMainModule:
-  echo("Hello, World!")
+var test = Vector(x: 1.0, y: 0.5)
+echo (test/2+test*2).toUnit
