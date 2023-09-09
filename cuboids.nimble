@@ -11,3 +11,4 @@ namedBin["main"] = "cuboids"
 # Dependencies
 
 requires "nim >= 2.0.0"
+requires "staticglfw >= 4.1.3"
