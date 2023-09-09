@@ -1,13 +1,12 @@
 # Package
 
-version       = "0.1.0"
-author        = "Conan Bitter"
-description   = "A simple Asteroids game"
-license       = "MIT"
-srcDir        = "src"
-bin           = @["main"]
+version          = "0.1.0"
+author           = "Conan Bitter"
+description      = "A simple Asteroids game"
+license          = "MIT"
+srcDir           = "src"
+binDir           = "bin"
 namedBin["main"] = "cuboids"
-
 
 # Dependencies
 
