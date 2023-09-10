@@ -74,6 +74,6 @@ proc compileShaderProgram*(vertexShaderCode: string, fragmentShaderCode: string)
     if ((GLboolean)isLinked) != GL_TRUE:
         echo "Shader link error: " & getProgramLog(program)
         return 0
-    glDeleteShader(compiledVertexShader);
-    glDeleteShader(compiledFragmentShader);
+    glDeleteShader(compiledVertexShader)
+    glDeleteShader(compiledFragmentShader)
     return program
