@@ -1,6 +1,10 @@
 import staticglfw
 import opengl
 import display
+import geometry
+
+const test = newGeometry(@[Vector(x: 1.0, y: 1.0), Vector(x: 0.5, y: -0.5)])
+echo test
 
 if init() == 0:
     raise newException(Exception, "Failed to Initialize GLFW")
