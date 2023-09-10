@@ -1,6 +1,6 @@
 import opengl
 
-type Shader = GLuint
+type Shader* = GLuint
 
 proc getShaderLog(shader: GLuint): string =
     if glIsShader(shader):
