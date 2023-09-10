@@ -2,6 +2,12 @@ import opengl
 import ../geometry
 import shaders
 
+type RendererState = enum
+    Ready, NotReady, DrawingLines, DrawingPoints
+
+type RenderType* = enum
+    Lines, Points
+
 type Color* = object
     r: uint8
     g: uint8
@@ -17,6 +23,10 @@ type Renderer* = ref object
     vao: GLuint
     vbo: GLuint
     ar_loc: GLint
+    state: RendererState
+    vertices: seq[Vertex]
+    lastVertex: Vertex
+    isNewLine: bool
 
 
 const vertexShaderCode = """
@@ -56,12 +66,11 @@ var vertices: seq[Vertex] = @[
     Vertex(pos: Vector(x: -0.5, y: 0.5), color: Color(r: 0, g: 0, b: 255, a: 255)),
 ]
 
-
 #proc addPoint(pos: Vector, color: Color) =
 #    vertices.add(Vertex(pos: pos, color: color))
 
 proc newRenderer*(): Renderer =
-    result = Renderer()
+    result = Renderer(state: RendererState.NotReady)
 
     loadExtensions()
     # Set properties
@@ -112,4 +121,45 @@ proc startRender*(ren: Renderer) =
     glClear(GL_COLOR_BUFFER_BIT)
     glUseProgram(ren.program)
     glBindVertexArray(ren.vao)
-    glDrawArrays(GL_LINES, 0, 6)
+    ren.state = RendererState.Ready
+
+proc beginDraw*(ren: Renderer, renderType: RenderType) =
+    ren.vertices.setLen(0)
+    case renderType:
+    of RenderType.Points:
+        ren.state = RendererState.DrawingPoints
+    of RenderType.Lines:
+        ren.state = RendererState.DrawingLines
+        ren.isNewLine = true
+
+proc addPoint*(ren: Renderer, pos: Vector, color: Color) =
+    let newVertex = Vertex(pos: pos, color: color)
+    if ren.state == RendererState.DrawingPoints:
+        ren.vertices.add(newVertex)
+    elif ren.state == RendererState.DrawingLines:
+
+        if ren.isNewLine:
+            ren.isNewLine = false
+        else:
+            ren.vertices.add(ren.lastVertex)
+            ren.vertices.add(newVertex)
+        ren.lastVertex = newVertex
+
+proc newLine*(ren: Renderer) =
+    ren.isNewLine = true
+
+proc endDraw*(ren: Renderer) =
+    var drawType: GLenum = GL_ONE # dummy value
+
+    if ren.state == RendererState.DrawingPoints:
+        drawType = GL_POINTS
+    elif ren.state == RendererState.DrawingLines:
+        drawType = GL_LINES
+
+    if drawType != GL_ONE:
+        glBufferData(GL_ARRAY_BUFFER, ren.vertices.len * Vertex.sizeof, addr ren.vertices[0], GL_DYNAMIC_DRAW)
+        glDrawArrays(drawType, 0, (GLsizei)ren.vertices.len)
+        ren.state = RendererState.Ready
+
+proc finishRender*(ren: Renderer) =
+    ren.state = RendererState.NotReady
