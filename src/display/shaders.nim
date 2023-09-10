@@ -1,7 +1,5 @@
 import opengl
 
-type Shader* = GLuint
-
 proc getShaderLog(shader: GLuint): string =
     if glIsShader(shader):
         var infoLogLength: GLsizei = 0
@@ -57,7 +55,7 @@ proc compileShader(source: string, shaderType: GLenum): GLuint =
         return 0
     return shader
 
-proc compileShaderProgram*(vertexShaderCode: string, fragmentShaderCode: string): Shader =
+proc compileShaderProgram*(vertexShaderCode: string, fragmentShaderCode: string): GLuint =
     let program = glCreateProgram()
 
     let compiledVertexShader = compileShader(vertexShaderCode, GL_VERTEX_SHADER)
