@@ -58,18 +58,6 @@ const fragmentShaderCode = """
     }
 """
 
-var vertices: seq[Vertex] = @[
-    Vertex(pos: Vector(x: -0.5, y: -0.5), color: Color(r: 255, g: 0, b: 0, a: 255)),
-    Vertex(pos: Vector(x: 0.5, y: -0.5), color: Color(r: 0, g: 255, b: 0, a: 255)),
-    Vertex(pos: Vector(x: -0.5, y: 0.5), color: Color(r: 0, g: 0, b: 255, a: 255)),
-    Vertex(pos: Vector(x: 0.5, y: -0.5), color: Color(r: 0, g: 255, b: 0, a: 255)),
-    Vertex(pos: Vector(x: 0.5, y: 0.5), color: Color(r: 255, g: 255, b: 255, a: 255)),
-    Vertex(pos: Vector(x: -0.5, y: 0.5), color: Color(r: 0, g: 0, b: 255, a: 255)),
-]
-
-#proc addPoint(pos: Vector, color: Color) =
-#    vertices.add(Vertex(pos: pos, color: color))
-
 proc newRenderer*(): Renderer =
     result = Renderer(state: RendererState.NotReady)
 
@@ -104,73 +92,73 @@ proc newRenderer*(): Renderer =
     glUniform1f(result.ar_loc, 1.0)
 
 
-proc free*(ren: Renderer) =
-    if glIsBuffer(ren.vbo):
-        glDeleteBuffers(1, addr ren.vbo)
+proc free*(self: Renderer) =
+    if glIsBuffer(self.vbo):
+        glDeleteBuffers(1, addr self.vbo)
 
-    if glIsVertexArray(ren.vao):
-        glDeleteVertexArrays(1, addr ren.vao)
+    if glIsVertexArray(self.vao):
+        glDeleteVertexArrays(1, addr self.vao)
 
-    if glIsProgram(ren.program):
-        glDeleteProgram(ren.program)
+    if glIsProgram(self.program):
+        glDeleteProgram(self.program)
 
-proc startRender*(ren: Renderer) =
+proc startRender*(self: Renderer) =
     glClearColor(0.1, 0.1, 0.1, 1.0)
     glClear(GL_COLOR_BUFFER_BIT)
-    glUseProgram(ren.program)
-    glBindVertexArray(ren.vao)
-    ren.state = RendererState.Ready
+    glUseProgram(self.program)
+    glBindVertexArray(self.vao)
+    self.state = RendererState.Ready
 
-proc beginDraw*(ren: Renderer, renderType: RenderType) =
-    if ren.state == RendererState.NotReady: return
-    ren.vertices.setLen(0)
+proc beginDraw*(self: Renderer, renderType: RenderType) =
+    if self.state == RendererState.NotReady: return
+    self.vertices.setLen(0)
     case renderType:
     of RenderType.Points:
-        ren.state = RendererState.DrawingPoints
+        self.state = RendererState.DrawingPoints
     of RenderType.Lines:
-        ren.state = RendererState.DrawingLines
-        ren.isNewLine = true
+        self.state = RendererState.DrawingLines
+        self.isNewLine = true
 
-proc addPoint*(ren: Renderer, pos: Vector, color: Color) =
+proc addPoint*(self: Renderer, pos: Vector, color: Color) =
     let newVertex = Vertex(pos: pos, color: color)
-    if ren.state == RendererState.DrawingPoints:
-        ren.vertices.add(newVertex)
-    elif ren.state == RendererState.DrawingLines:
+    if self.state == RendererState.DrawingPoints:
+        self.vertices.add(newVertex)
+    elif self.state == RendererState.DrawingLines:
 
-        if ren.isNewLine:
-            ren.isNewLine = false
+        if self.isNewLine:
+            self.isNewLine = false
         else:
-            ren.vertices.add(ren.lastVertex)
-            ren.vertices.add(newVertex)
-        ren.lastVertex = newVertex
+            self.vertices.add(self.lastVertex)
+            self.vertices.add(newVertex)
+        self.lastVertex = newVertex
 
-proc newLine*(ren: Renderer) =
-    ren.isNewLine = true
+proc newLine*(self: Renderer) =
+    self.isNewLine = true
 
-proc endDraw*(ren: Renderer) =
+proc endDraw*(self: Renderer) =
     var drawType: GLenum = GL_KEEP # dummy value
 
-    if ren.state == RendererState.DrawingPoints:
+    if self.state == RendererState.DrawingPoints:
         drawType = GL_POINTS
-    elif ren.state == RendererState.DrawingLines:
+    elif self.state == RendererState.DrawingLines:
         drawType = GL_LINES
 
     if drawType != GL_KEEP:
-        glBufferData(GL_ARRAY_BUFFER, ren.vertices.len * Vertex.sizeof, addr ren.vertices[0], GL_DYNAMIC_DRAW)
-        glDrawArrays(drawType, 0, (GLsizei)ren.vertices.len)
-        ren.state = RendererState.Ready
+        glBufferData(GL_ARRAY_BUFFER, self.vertices.len * Vertex.sizeof, addr self.vertices[0], GL_DYNAMIC_DRAW)
+        glDrawArrays(drawType, 0, (GLsizei)self.vertices.len)
+        self.state = RendererState.Ready
 
-proc finishRender*(ren: Renderer) =
-    ren.state = RendererState.NotReady
+proc finishRender*(self: Renderer) =
+    self.state = RendererState.NotReady
 
 const thickRate: float32 = 1080.0/3.0
 
-proc setViewport*(ren: Renderer, width, height: int) =
-    glViewport(0, 0, (GLsizei)width, (GLsizei)height)
-    glUniform1f(ren.ar_loc, ((float32)width)/((float32)height))
-    var newThickness = ((float32)height)/thickRate
+proc setViewport*(self: Renderer, width, height: int) =
+    glViewport(0, 0, width.GLsizei, height.GLsizei)
+    glUniform1f(self.ar_loc, width.float32/height.float32)
+    var newThickness = height.float32/thickRate
     if newThickness < 1.0: newThickness = 1.0
     glLineWidth(newThickness)
     glPointSize(newThickness)
-    ren.thickness = newThickness/((float32)height)
-    echo ren.thickness
+    self.thickness = newThickness/height.float32
+    echo self.thickness
