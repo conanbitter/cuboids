@@ -1,5 +1,17 @@
 import staticglfw
 import renderer
+import std/tables
+
+type KeyCode* = enum
+    KeyLeft, KeyRight, KeyUp, KeyDown, KeyAction
+
+const keyTable = {
+    KeyLeft: staticglfw.KEY_LEFT,
+    KeyRight: staticglfw.KEY_RIGHT,
+    KeyUp: staticglfw.KEY_UP,
+    KeyDown: staticglfw.KEY_DOWN,
+    KeyAction: staticglfw.KEY_Z
+}.toTable()
 
 type AppWindow* = ref object of RootObj
     window: Window
@@ -42,6 +54,8 @@ proc init*(wnd: AppWindow) =
     wnd.window.setWindowUserPointer(addr wnd.renderer)
     discard wnd.window.setWindowSizeCallback(sizeCallback)
 
+proc isKeyPressed*(wnd: AppWindow, key: KeyCode): bool =
+    return wnd.window.getKey(keyTable[key].cint) == 1
 
 proc run*(wnd: AppWindow) =
     wnd.onLoad()
