@@ -1,11 +1,23 @@
 import staticglfw
 import renderer
 
-type Window* = ref object
+type Window* = ref object of RootObj
     window: staticglfw.Window
     renderer*: Renderer
 
-proc newWindow*(): Window =
+method onLoad*(wnd: Window){.base.} =
+    discard
+
+method onUpdate*(wnd: Window){.base.} =
+    discard
+
+method onDraw*(wnd: Window){.base.} =
+    discard
+
+method onUnload*(wnd: Window){.base.} =
+    discard
+
+proc init*(wnd: Window) =
     if init() == 0:
         raise newException(Exception, "Failed to Initialize GLFW")
 
@@ -14,23 +26,27 @@ proc newWindow*(): Window =
     windowHint(OPENGL_PROFILE, OPENGL_CORE_PROFILE)
     windowHint(RESIZABLE, FALSE)
 
-    result = Window()
+    wnd.window = createWindow(800, 600, "GLFW3 WINDOW", nil, nil)
+    wnd.window.makeContextCurrent()
 
-    result.window = createWindow(800, 600, "GLFW3 WINDOW", nil, nil)
-    result.window.makeContextCurrent()
+    wnd.renderer = newRenderer()
 
-    result.renderer = newRenderer()
 
 proc run*(wnd: Window) =
+    wnd.onLoad()
+
     while windowShouldClose(wnd.window) == 0:
-
-        wnd.renderer.startRender()
-        wnd.window.swapBuffers()
-
         pollEvents()
         if wnd.window.getKey(KEY_ESCAPE) == 1:
             wnd.window.setWindowShouldClose(1)
+        wnd.onUpdate()
 
+        wnd.renderer.startRender()
+        wnd.onDraw()
+        wnd.renderer.finishRender()
+        wnd.window.swapBuffers()
+
+    wnd.onUnload()
     wnd.renderer.free()
     wnd.window.destroyWindow()
     terminate()
