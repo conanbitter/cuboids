@@ -6,25 +6,37 @@ import geometry
 type GameWindow = ref object of AppWindow
     x: float32
     ship: Figure
+    shipSpeed: Vector
     speed: float32
+
+const MAX_SPEED = 0.1'f32
+const ACCELERATION = 0.001'f32
+const DUMP = 0.0001'f32
 
 method onLoad(self: GameWindow) =
     self.ship = newFigure(geoShip)
     self.ship.scale = 0.1
-    self.speed = 0.01
+    self.shipSpeed = Vector(x: 0, y: 0)
 
 method onUpdate(self: GameWindow) =
-    var direction = Vector(x: 0, y: 0)
+    var thrust = Vector(x: 0, y: 0)
     if self.isKeyPressed(KeyRight):
         self.ship.angle-=0.05
     if self.isKeyPressed(KeyLeft):
         self.ship.angle+=0.05
     if self.isKeyPressed(KeyUp):
-        direction.y+=1
+        thrust.y+=1
     if self.isKeyPressed(KeyDown):
-        direction.y-=1
-    if not direction.isZero:
-        self.ship.pos = self.ship.pos+direction.toUnit.rotate(self.ship.angle)*self.speed
+        thrust.y-=1
+    if not thrust.isZero:
+        self.shipSpeed = self.shipSpeed+thrust.toUnit.rotate(self.ship.angle)*ACCELERATION
+    if self.shipSpeed.len > MAX_SPEED:
+        self.shipSpeed = self.shipSpeed.toUnit*MAX_SPEED
+    if self.shipSpeed.len < DUMP:
+        self.shipSpeed = Vector(x: 0, y: 0)
+    else:
+        self.shipSpeed = self.shipSpeed.toUnit*(self.shipSpeed.len-DUMP)
+    self.ship.pos = self.ship.pos+self.shipSpeed
 
 method onDraw(self: GameWindow) =
     var col = Color(r: 200, g: 128, b: 100, a: 255)
