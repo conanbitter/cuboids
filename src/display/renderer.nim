@@ -27,6 +27,7 @@ type Renderer* = ref object
     vertices: seq[Vertex]
     lastVertex: Vertex
     isNewLine: bool
+    thickness: float32
 
 
 const vertexShaderCode = """
@@ -78,8 +79,6 @@ proc newRenderer*(): Renderer =
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_LINE_SMOOTH)
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
-    glLineWidth(9.0)
-    glPointSize(9.0)
 
     # Init shader
     result.program = compileShaderProgram(vertexShaderCode, fragmentShaderCode)
@@ -103,7 +102,6 @@ proc newRenderer*(): Renderer =
         cast[pointer](float32.sizeof * 2))
 
     glUniform1f(result.ar_loc, 1.0)
-    glBufferData(GL_ARRAY_BUFFER, vertices.len * Vertex.sizeof, addr vertices[0], GL_STATIC_DRAW)
 
 
 proc free*(ren: Renderer) =
@@ -165,6 +163,14 @@ proc endDraw*(ren: Renderer) =
 proc finishRender*(ren: Renderer) =
     ren.state = RendererState.NotReady
 
+const thickRate: float32 = 1080.0/3.0
+
 proc setViewport*(ren: Renderer, width, height: int) =
     glViewport(0, 0, (GLsizei)width, (GLsizei)height)
     glUniform1f(ren.ar_loc, ((float32)width)/((float32)height))
+    var newThickness = ((float32)height)/thickRate
+    if newThickness < 1.0: newThickness = 1.0
+    glLineWidth(newThickness)
+    glPointSize(newThickness)
+    ren.thickness = newThickness/((float32)height)
+    echo ren.thickness

@@ -30,10 +30,14 @@ proc init*(wnd: AppWindow) =
     windowHint(OPENGL_PROFILE, OPENGL_CORE_PROFILE)
     #windowHint(RESIZABLE, FALSE)
 
-    wnd.window = createWindow(800, 600, "GLFW3 WINDOW", nil, nil)
+    var width = 800
+    var height = 600
+
+    wnd.window = createWindow((cint)width, (cint)height, "Cuboids", nil, nil)
     wnd.window.makeContextCurrent()
 
     wnd.renderer = newRenderer()
+    wnd.renderer.setViewport(width, height)
 
     wnd.window.setWindowUserPointer(addr wnd.renderer)
     discard wnd.window.setWindowSizeCallback(sizeCallback)
