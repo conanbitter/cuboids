@@ -1,35 +1,7 @@
-import std/strformat
-import std/math
-
-type
-    Vector* = object
-        x*: float32
-        y*: float32
-
-func `$`*(vector: Vector): string =
-    return fmt"[{vector.x:.3f}, {vector.y:.3f}]"
-
-func `+`*(vec1, vec2: Vector): Vector =
-    Vector(x: vec1.x+vec2.x, y: vec1.y+vec2.y)
-
-func `-`*(vec1, vec2: Vector): Vector =
-    Vector(x: vec1.x-vec2.x, y: vec1.y-vec2.y)
-
-func `*`*(vec: Vector, multiplier: float32): Vector =
-    Vector(x: vec.x*multiplier, y: vec.y*multiplier)
-
-func `/`*(vec: Vector, denominator: float32): Vector =
-    Vector(x: vec.x/denominator, y: vec.y/denominator)
-
-func len*(vec: Vector): float32 = sqrt(vec.x*vec.x+vec.y*vec.y)
-
-func toUnit*(vec: Vector): Vector =
-    let length = vec.len
-    return Vector(x: vec.x/length, y: vec.y/length)
-
+import display/[vectors, renderer]
 
 type Geometry = object
-    lines: seq[Vector]
+    points: seq[Vector]
     radius: float
 
 func newGeometry*(points: openArray[Vector], closed: bool = true): Geometry {.compileTime.} =
@@ -40,4 +12,38 @@ func newGeometry*(points: openArray[Vector], closed: bool = true): Geometry {.co
             maxRadius = radius
     var pointseq = @points
     if closed: pointseq.add points[0]
-    return Geometry(lines: pointseq, radius: maxRadius)
+    return Geometry(points: pointseq, radius: maxRadius)
+
+const geoSquare* = newGeometry(@[
+    Vector(x: -1.0, y: -1.0),
+    Vector(x: -1.0, y: 1.0),
+    Vector(x: 1.0, y: 1.0),
+    Vector(x: 1.0, y: -1.0),
+], closed = true)
+
+const geoShip* = newGeometry(@[
+    Vector(x: 0.0, y: 1.2),
+    Vector(x: 0.7, y: -0.8),
+    Vector(x: -0.7, y: -0.8),
+], closed = true)
+
+type Figure* = ref object
+    geom: Geometry
+    pos*: Vector
+    angle*: float32
+    scale*: float32
+    color*: Color
+
+func newFigure*(geometry: Geometry): Figure =
+    return Figure(
+        geom: geometry,
+        pos: Vector(x: 0, y: 0),
+        angle: 0,
+        scale: 1.0,
+        color: Color(r: 200, g: 200, b: 200, a: 255)
+    )
+
+proc draw*(self: Figure, ren: Renderer) =
+    ren.newLine()
+    for point in self.geom.points:
+        ren.addPoint(point.rotate(self.angle)*self.scale+self.pos, self.color)

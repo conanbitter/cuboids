@@ -1,5 +1,5 @@
 import opengl
-import ../geometry
+import vectors
 import shaders
 
 type RendererState = enum
@@ -161,4 +161,3 @@ proc setViewport*(self: Renderer, width, height: int) =
     glLineWidth(newThickness)
     glPointSize(newThickness)
     self.thickness = newThickness/height.float32
-    echo self.thickness
