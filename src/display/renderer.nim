@@ -124,6 +124,7 @@ proc startRender*(ren: Renderer) =
     ren.state = RendererState.Ready
 
 proc beginDraw*(ren: Renderer, renderType: RenderType) =
+    if ren.state == RendererState.NotReady: return
     ren.vertices.setLen(0)
     case renderType:
     of RenderType.Points:
@@ -149,17 +150,21 @@ proc newLine*(ren: Renderer) =
     ren.isNewLine = true
 
 proc endDraw*(ren: Renderer) =
-    var drawType: GLenum = GL_ONE # dummy value
+    var drawType: GLenum = GL_KEEP # dummy value
 
     if ren.state == RendererState.DrawingPoints:
         drawType = GL_POINTS
     elif ren.state == RendererState.DrawingLines:
         drawType = GL_LINES
 
-    if drawType != GL_ONE:
+    if drawType != GL_KEEP:
         glBufferData(GL_ARRAY_BUFFER, ren.vertices.len * Vertex.sizeof, addr ren.vertices[0], GL_DYNAMIC_DRAW)
         glDrawArrays(drawType, 0, (GLsizei)ren.vertices.len)
         ren.state = RendererState.Ready
 
 proc finishRender*(ren: Renderer) =
     ren.state = RendererState.NotReady
+
+proc setViewport*(ren: Renderer, width, height: int) =
+    glViewport(0, 0, (GLsizei)width, (GLsizei)height)
+    glUniform1f(ren.ar_loc, ((float32)width)/((float32)height))

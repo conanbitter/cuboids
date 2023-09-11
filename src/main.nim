@@ -5,7 +5,7 @@ import geometry
 const test = newGeometry(@[Vector(x: 1.0, y: 1.0), Vector(x: 0.5, y: -0.5)])
 echo test
 
-type GameWindow = ref object of Window
+type GameWindow = ref object of AppWindow
     dummy: int
 
 method onLoad(wnd: GameWindow) =
