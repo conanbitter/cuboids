@@ -1,4 +1,5 @@
 import display/[vectors, renderer]
+import std/sequtils
 
 type Geometry = object
     points: seq[Vector]
@@ -43,7 +44,47 @@ func newFigure*(geometry: Geometry): Figure =
         color: Color(r: 200, g: 200, b: 200, a: 255)
     )
 
+iterator points(self: Figure): Vector =
+    for point in self.geom.points:
+        yield point.rotate(self.angle)*self.scale+self.pos
+
 proc draw*(self: Figure, ren: Renderer) =
     ren.newLine()
-    for point in self.geom.points:
-        ren.addPoint(point.rotate(self.angle)*self.scale+self.pos, self.color)
+    for point in self.points:
+        ren.addPoint(point, self.color)
+
+proc checkCollision*(fig1, fig2: Figure): bool =
+    # Simple distance checking
+    let distance = (fig1.pos-fig2.pos).len
+    if distance > (fig1.geom.radius*fig1.scale+fig2.geom.radius*fig2.scale):
+        return false
+
+    # Using "http://content.gpwiki.org/index.php/Polygon_Collision"
+    # (http://web.archive.org/web/20141127210836/http://content.gpwiki.org/index.php/Polygon_Collision)
+    # Assuming both figures are convex polygons
+    let points1 = fig1.points.toSeq
+    let points2 = fig2.points.toSeq
+
+    for i in 0..points1.len-2:
+        let v1 = points1[i+1]-points1[i]
+        var outside = true
+        for point in points2:
+            let v2 = point-points1[i]
+            if v1.pseudoCross(v2) < 0:
+                outside = false
+                break
+        if outside:
+            return false
+
+    for i in 0..points2.len-2:
+        let v1 = points2[i+1]-points2[i]
+        var outside = true
+        for point in points1:
+            let v2 = point-points2[i]
+            if v1.pseudoCross(v2) < 0:
+                outside = false
+                break
+        if outside:
+            return false
+
+    return true

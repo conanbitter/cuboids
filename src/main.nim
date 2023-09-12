@@ -62,6 +62,12 @@ method onUpdate(self: GameWindow) =
 method onDraw(self: GameWindow) =
     self.renderer.beginDraw(RenderType.Lines)
 
+    let c1 = Color(r: 200, g: 50, b: 50, a: 255)
+    let c2 = Color(r: 50, g: 200, b: 50, a: 255)
+    if checkCollision(self.ship, self.cube):
+        self.ship.color = c1
+    else:
+        self.ship.color = c2
     self.ship.draw(self.renderer)
     self.cube.draw(self.renderer)
 

@@ -36,3 +36,6 @@ func rotate*(vec: Vector, angle: float32): Vector =
         x: vec.x*cos(angle)-vec.y*sin(angle),
         y: vec.x*sin(angle)+vec.y*cos(angle),
     )
+
+func pseudoCross*(vec: Vector, other: Vector): float32 =
+    vec.x * other.y - vec.y * other.x
