@@ -34,36 +34,78 @@ type Figure* = ref object
     angle*: float32
     scale*: float32
     color*: Color
+    radius: float32
+    xcopy: int
+    ycopy: int
 
-func newFigure*(geometry: Geometry): Figure =
+func newFigure*(ren: Renderer, geometry: Geometry, scale: float32 = 1.0): Figure =
     return Figure(
         geom: geometry,
         pos: Vector(x: 0, y: 0),
         angle: 0,
-        scale: 1.0,
-        color: Color(r: 200, g: 200, b: 200, a: 255)
+        scale: scale,
+        color: Color(r: 200, g: 200, b: 200, a: 255),
+        radius: geometry.radius*scale+ren.thickness,
+        xcopy: 0,
+        ycopy: 0,
     )
 
-iterator points(self: Figure): Vector =
+iterator points(self: Figure, offset: Vector): Vector =
     for point in self.geom.points:
-        yield point.rotate(self.angle)*self.scale+self.pos
+        yield point.rotate(self.angle)*self.scale+self.pos+offset
 
-proc draw*(self: Figure, ren: Renderer) =
-    ren.newLine()
-    for point in self.points:
-        ren.addPoint(point, self.color)
+iterator copies(self: Figure, ren: Renderer): Vector =
+    yield Vector(x: 0, y: 0)
+    if self.xcopy != 0:
+        yield Vector(x: self.xcopy.float32*ren.bounds.x*2, y: 0)
+        if self.ycopy != 0:
+            yield Vector(x: self.xcopy.float32*ren.bounds.x*2, y: self.ycopy.float32*ren.bounds.y*2)
+    if self.ycopy != 0:
+        yield Vector(x: 0, y: self.ycopy.float32*ren.bounds.y*2)
 
-proc checkCollision*(fig1, fig2: Figure): bool =
+proc draw*(self: Figure, ren: Renderer, wrap: bool = true) =
+    if wrap:
+        for offset in self.copies(ren):
+            ren.newLine()
+            for point in self.points(offset):
+                ren.addPoint(point, self.color)
+    else:
+        ren.newLine()
+        for point in self.points(Vector(x: 0, y: 0)):
+            ren.addPoint(point, self.color)
+
+proc updatePos*(self: Figure, offset: Vector, ren: Renderer) =
+    self.pos = self.pos+offset
+    if self.pos.x > ren.bounds.x: self.pos.x-=ren.bounds.x*2
+    if self.pos.x < -ren.bounds.x: self.pos.x+=ren.bounds.x*2
+    if self.pos.y > ren.bounds.y: self.pos.y-=ren.bounds.y*2
+    if self.pos.y < -ren.bounds.y: self.pos.y+=ren.bounds.y*2
+
+    if self.pos.x+self.radius > ren.bounds.x:
+        self.xcopy = -1
+    elif self.pos.x-self.radius < -ren.bounds.x:
+        self.xcopy = 1
+    else:
+        self.xcopy = 0
+    if self.pos.y+self.radius > ren.bounds.y:
+        self.ycopy = -1
+    elif self.pos.y-self.radius < -ren.bounds.y:
+        self.ycopy = 1
+    else:
+        self.ycopy = 0
+
+
+proc checkSingleCollision(fig1: Figure, fig1offset: Vector, fig2: Figure, fig2offset: Vector): bool =
     # Simple distance checking
-    let distance = (fig1.pos-fig2.pos).len
-    if distance > (fig1.geom.radius*fig1.scale+fig2.geom.radius*fig2.scale):
+    let distance = ((fig1.pos+fig1offset)-(fig2.pos+fig2offset)).len
+    if distance > (fig1.radius+fig2.radius):
         return false
 
     # Using "http://content.gpwiki.org/index.php/Polygon_Collision"
     # (http://web.archive.org/web/20141127210836/http://content.gpwiki.org/index.php/Polygon_Collision)
     # Assuming both figures are convex polygons
-    let points1 = fig1.points.toSeq
-    let points2 = fig2.points.toSeq
+    let points1 = fig1.points(fig1offset).toSeq
+    let points2 = fig2.points(fig2offset).toSeq
 
     for i in 0..points1.len-2:
         let v1 = points1[i+1]-points1[i]
@@ -88,3 +130,10 @@ proc checkCollision*(fig1, fig2: Figure): bool =
             return false
 
     return true
+
+proc checkCollision*(fig1: Figure, fig2: Figure, ren: Renderer): bool =
+    for fig1offset in fig1.copies(ren):
+        for fig2offset in fig2.copies(ren):
+            if checkSingleCollision(fig1, fig1offset, fig2, fig2offset):
+                return true
+    return false

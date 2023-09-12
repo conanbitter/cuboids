@@ -16,12 +16,10 @@ const SHIP_ACCELERATION = 0.001'f32
 const SHIP_DRAG = 0.0001'f32
 
 method onLoad(self: GameWindow) =
-    self.ship = newFigure(geoShip)
-    self.ship.scale = 0.1
+    self.ship = newFigure(self.renderer, geoShip, 0.1)
     self.shipSpeed = Vector(x: 0, y: 0)
-    self.cube = newFigure(geoSquare)
+    self.cube = newFigure(self.renderer, geoSquare, 0.2)
     self.cube.pos = Vector(x: 0.5, y: 0)
-    self.cube.scale = 0.2
     self.active = true
 
 method onUpdate(self: GameWindow) =
@@ -46,14 +44,17 @@ method onUpdate(self: GameWindow) =
     if self.isKeyPressed(KeyC):
         self.active = not self.active
     let active = if self.active: self.ship else: self.cube
+    var offset: Vector
     if self.isKeyPressed(KeyRight):
-        active.pos.x+=0.01
+        offset.x+=0.01
     if self.isKeyPressed(KeyLeft):
-        active.pos.x-=0.01
+        offset.x-=0.01
     if self.isKeyPressed(KeyUp):
-        active.pos.y+=0.01
+        offset.y+=0.01
     if self.isKeyPressed(KeyDown):
-        active.pos.y-=0.01
+        offset.y-=0.01
+    if not offset.isZero:
+        active.updatePos(offset, self.renderer)
     if self.isKeyPressed(KeyA):
         active.angle+=0.05
     if self.isKeyPressed(KeyB):
@@ -64,7 +65,7 @@ method onDraw(self: GameWindow) =
 
     let c1 = Color(r: 200, g: 50, b: 50, a: 255)
     let c2 = Color(r: 50, g: 200, b: 50, a: 255)
-    if checkCollision(self.ship, self.cube):
+    if checkCollision(self.ship, self.cube, self.renderer):
         self.ship.color = c1
     else:
         self.ship.color = c2

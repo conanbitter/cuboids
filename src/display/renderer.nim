@@ -27,7 +27,8 @@ type Renderer* = ref object
     vertices: seq[Vertex]
     lastVertex: Vertex
     isNewLine: bool
-    thickness: float32
+    thickness*: float32
+    bounds*: Vector
 
 
 const vertexShaderCode = """
@@ -155,9 +156,11 @@ const thickRate: float32 = 1080.0/3.0
 
 proc setViewport*(self: Renderer, width, height: int) =
     glViewport(0, 0, width.GLsizei, height.GLsizei)
-    glUniform1f(self.ar_loc, width.float32/height.float32)
+    let newAr = width.float32/height.float32
+    glUniform1f(self.ar_loc, newAr)
     var newThickness = height.float32/thickRate
     if newThickness < 1.0: newThickness = 1.0
     glLineWidth(newThickness)
     glPointSize(newThickness)
     self.thickness = newThickness/height.float32
+    self.bounds = Vector(x: newAr, y: 1.0)
