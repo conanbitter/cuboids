@@ -3,14 +3,16 @@ import renderer
 import std/tables
 
 type KeyCode* = enum
-    KeyLeft, KeyRight, KeyUp, KeyDown, KeyAction
+    KeyLeft, KeyRight, KeyUp, KeyDown, KeyA, KeyB, KeyC
 
 const keyTable = {
     KeyLeft: staticglfw.KEY_LEFT,
     KeyRight: staticglfw.KEY_RIGHT,
     KeyUp: staticglfw.KEY_UP,
     KeyDown: staticglfw.KEY_DOWN,
-    KeyAction: staticglfw.KEY_Z
+    KeyA: staticglfw.KEY_Z,
+    KeyB: staticglfw.KEY_X,
+    KeyC: staticglfw.KEY_C
 }.toTable()
 
 type AppWindow* = ref object of RootObj
