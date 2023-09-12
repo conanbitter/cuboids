@@ -9,9 +9,9 @@ type GameWindow = ref object of AppWindow
     shipSpeed: Vector
     speed: float32
 
-const MAX_SPEED = 0.1'f32
-const ACCELERATION = 0.001'f32
-const DUMP = 0.0001'f32
+const SHIP_MAX_SPEED = 0.1'f32
+const SHIP_ACCELERATION = 0.001'f32
+const SHIP_DRAG = 0.0001'f32
 
 method onLoad(self: GameWindow) =
     self.ship = newFigure(geoShip)
@@ -29,13 +29,13 @@ method onUpdate(self: GameWindow) =
     if self.isKeyPressed(KeyDown):
         thrust.y-=1
     if not thrust.isZero:
-        self.shipSpeed = self.shipSpeed+thrust.toUnit.rotate(self.ship.angle)*ACCELERATION
-    if self.shipSpeed.len > MAX_SPEED:
-        self.shipSpeed = self.shipSpeed.toUnit*MAX_SPEED
-    if self.shipSpeed.len < DUMP:
+        self.shipSpeed = self.shipSpeed+thrust.toUnit.rotate(self.ship.angle)*SHIP_ACCELERATION
+    if self.shipSpeed.len > SHIP_MAX_SPEED:
+        self.shipSpeed = self.shipSpeed.toUnit*SHIP_MAX_SPEED
+    if self.shipSpeed.len < SHIP_DRAG:
         self.shipSpeed = Vector(x: 0, y: 0)
     else:
-        self.shipSpeed = self.shipSpeed.toUnit*(self.shipSpeed.len-DUMP)
+        self.shipSpeed = self.shipSpeed.toUnit*(self.shipSpeed.len-SHIP_DRAG)
     self.ship.pos = self.ship.pos+self.shipSpeed
 
 method onDraw(self: GameWindow) =
