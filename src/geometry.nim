@@ -21,7 +21,7 @@ type Figure* = ref object
     angle*: float32
     scale*: float32
     color*: Color
-    radius: float32
+    radius*: float32
     xcopy: int
     ycopy: int
     wrap: bool

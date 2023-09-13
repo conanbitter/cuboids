@@ -8,6 +8,9 @@ type GameWindow = ref object of AppWindow
     x: float32
     ship: Figure
     cube: Figure
+    proj: Figure
+    projActive: bool
+    projDirection: Vector
     shipSpeed: Vector
     speed: float32
     active: bool
@@ -15,8 +18,10 @@ type GameWindow = ref object of AppWindow
 method onLoad(self: GameWindow) =
     self.ship = newFigure(GEO_SHIP, SHIP_SCALE)
     self.shipSpeed = Vector(x: 0, y: 0)
-    self.cube = newFigure(GEO_ASTER, ASTER_SCALE, wrap = false)
+    self.cube = newFigure(GEO_ASTER, ASTER_SCALE)
     self.cube.pos = Vector(x: 0.5, y: 0)
+    self.proj = newFigure(GEO_PROJ, PROJ_SCALE, wrap = false)
+    self.projActive = false
     self.active = true
 
 method onUpdate(self: GameWindow) =
@@ -38,8 +43,20 @@ method onUpdate(self: GameWindow) =
     else:
         self.shipSpeed = self.shipSpeed.toUnit*(self.shipSpeed.len-SHIP_DRAG)
     self.ship.pos = self.ship.pos+self.shipSpeed]#
-    if self.isKeyPressed(KeyC):
-        self.active = not self.active
+    if self.isKeyPressed(KeyC) and not self.projActive:
+        self.proj.angle = self.ship.angle
+        self.proj.pos = self.renderer.wrapPoint(self.ship.pos+Vector(x: 0, y: self.ship.radius).rotate(self.ship.angle))
+        self.projDirection = Vector(x: 0, y: PROJ_SPEED).rotate(self.ship.angle)
+        self.projActive = true
+
+    if self.projActive:
+        self.proj.move(self.projDirection, self.renderer)
+        if self.proj.pos.x-self.proj.radius-self.renderer.thickness > self.renderer.bounds.x or
+            self.proj.pos.x+self.proj.radius+self.renderer.thickness < -self.renderer.bounds.x or
+            self.proj.pos.y-self.proj.radius-self.renderer.thickness > self.renderer.bounds.y or
+            self.proj.pos.y+self.proj.radius+self.renderer.thickness < -self.renderer.bounds.y:
+            self.projActive = false
+
     let active = if self.active: self.ship else: self.cube
     var offset: Vector
     if self.isKeyPressed(KeyRight):
@@ -68,6 +85,8 @@ method onDraw(self: GameWindow) =
         self.ship.color = c2
     self.ship.draw(self.renderer)
     self.cube.draw(self.renderer)
+    if self.projActive:
+        self.proj.draw(self.renderer)
 
     self.renderer.endDraw()
 

@@ -30,3 +30,4 @@ const SHIP_ROT_SPEED* = 0.05'f32
 const ASTER_SCALE* = 0.2'f32
 
 const PROJ_SCALE* = 0.05'f32
+const PROJ_SPEED* = 0.01'f32

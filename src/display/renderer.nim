@@ -164,3 +164,10 @@ proc setViewport*(self: Renderer, width, height: int) =
     glPointSize(newThickness)
     self.thickness = newThickness/height.float32
     self.bounds = Vector(x: newAr, y: 1.0)
+
+proc wrapPoint*(self: Renderer, point: Vector): Vector =
+    result = point
+    if result.x > self.bounds.x: result.x -= self.bounds.x*2
+    if result.x < -self.bounds.x: result.x += self.bounds.x*2
+    if result.y > self.bounds.y: result.y -= self.bounds.y*2
+    if result.y < -self.bounds.y: result.y += self.bounds.y*2
