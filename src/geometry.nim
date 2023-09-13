@@ -15,19 +15,6 @@ func newGeometry*(points: openArray[Vector], closed: bool = true): Geometry {.co
     if closed: pointseq.add points[0]
     return Geometry(points: pointseq, radius: maxRadius)
 
-const geoSquare* = newGeometry(@[
-    Vector(x: -1.0, y: -1.0),
-    Vector(x: -1.0, y: 1.0),
-    Vector(x: 1.0, y: 1.0),
-    Vector(x: 1.0, y: -1.0),
-], closed = true)
-
-const geoShip* = newGeometry(@[
-    Vector(x: 0.0, y: 1.2),
-    Vector(x: 0.7, y: -0.8),
-    Vector(x: -0.7, y: -0.8),
-], closed = true)
-
 type Figure* = ref object
     geom: Geometry
     pos*: Vector

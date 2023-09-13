@@ -2,6 +2,7 @@ import display/window
 import display/renderer
 import display/vectors
 import geometry
+import constants
 
 type GameWindow = ref object of AppWindow
     x: float32
@@ -11,14 +12,10 @@ type GameWindow = ref object of AppWindow
     speed: float32
     active: bool
 
-const SHIP_MAX_SPEED = 0.1'f32
-const SHIP_ACCELERATION = 0.001'f32
-const SHIP_DRAG = 0.0001'f32
-
 method onLoad(self: GameWindow) =
-    self.ship = newFigure(self.renderer, geoShip, 0.1)
+    self.ship = newFigure(self.renderer, GEO_SHIP, SHIP_SCALE)
     self.shipSpeed = Vector(x: 0, y: 0)
-    self.cube = newFigure(self.renderer, geoSquare, 0.2)
+    self.cube = newFigure(self.renderer, GEO_ASTER, ASTER_SCALE)
     self.cube.pos = Vector(x: 0.5, y: 0)
     self.active = true
 
@@ -56,9 +53,9 @@ method onUpdate(self: GameWindow) =
     if not offset.isZero:
         active.updatePos(offset, self.renderer)
     if self.isKeyPressed(KeyA):
-        active.angle+=0.05
+        active.angle+=SHIP_ROT_SPEED
     if self.isKeyPressed(KeyB):
-        active.angle-=0.05
+        active.angle-=SHIP_ROT_SPEED
 
 method onDraw(self: GameWindow) =
     self.renderer.beginDraw(RenderType.Lines)
