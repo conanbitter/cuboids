@@ -13,9 +13,9 @@ type GameWindow = ref object of AppWindow
     active: bool
 
 method onLoad(self: GameWindow) =
-    self.ship = newFigure(self.renderer, GEO_SHIP, SHIP_SCALE)
+    self.ship = newFigure(GEO_SHIP, SHIP_SCALE)
     self.shipSpeed = Vector(x: 0, y: 0)
-    self.cube = newFigure(self.renderer, GEO_ASTER, ASTER_SCALE)
+    self.cube = newFigure(GEO_ASTER, ASTER_SCALE, wrap = false)
     self.cube.pos = Vector(x: 0.5, y: 0)
     self.active = true
 
@@ -51,7 +51,7 @@ method onUpdate(self: GameWindow) =
     if self.isKeyPressed(KeyDown):
         offset.y-=0.01
     if not offset.isZero:
-        active.updatePos(offset, self.renderer)
+        active.move(offset, self.renderer)
     if self.isKeyPressed(KeyA):
         active.angle+=SHIP_ROT_SPEED
     if self.isKeyPressed(KeyB):

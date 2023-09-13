@@ -24,17 +24,19 @@ type Figure* = ref object
     radius: float32
     xcopy: int
     ycopy: int
+    wrap: bool
 
-func newFigure*(ren: Renderer, geometry: Geometry, scale: float32 = 1.0): Figure =
+func newFigure*(geometry: Geometry, scale: float32 = 1.0, wrap: bool = true): Figure =
     return Figure(
         geom: geometry,
         pos: Vector(x: 0, y: 0),
         angle: 0,
         scale: scale,
         color: Color(r: 200, g: 200, b: 200, a: 255),
-        radius: geometry.radius*scale+ren.thickness,
+        radius: geometry.radius*scale,
         xcopy: 0,
         ycopy: 0,
+        wrap: wrap
     )
 
 iterator points(self: Figure, offset: Vector): Vector =
@@ -43,15 +45,16 @@ iterator points(self: Figure, offset: Vector): Vector =
 
 iterator copies(self: Figure, ren: Renderer): Vector =
     yield Vector(x: 0, y: 0)
-    if self.xcopy != 0:
-        yield Vector(x: self.xcopy.float32*ren.bounds.x*2, y: 0)
+    if self.wrap:
+        if self.xcopy != 0:
+            yield Vector(x: self.xcopy.float32*ren.bounds.x*2, y: 0)
+            if self.ycopy != 0:
+                yield Vector(x: self.xcopy.float32*ren.bounds.x*2, y: self.ycopy.float32*ren.bounds.y*2)
         if self.ycopy != 0:
-            yield Vector(x: self.xcopy.float32*ren.bounds.x*2, y: self.ycopy.float32*ren.bounds.y*2)
-    if self.ycopy != 0:
-        yield Vector(x: 0, y: self.ycopy.float32*ren.bounds.y*2)
+            yield Vector(x: 0, y: self.ycopy.float32*ren.bounds.y*2)
 
-proc draw*(self: Figure, ren: Renderer, wrap: bool = true) =
-    if wrap:
+proc draw*(self: Figure, ren: Renderer) =
+    if self.wrap:
         for offset in self.copies(ren):
             ren.newLine()
             for point in self.points(offset):
@@ -61,25 +64,26 @@ proc draw*(self: Figure, ren: Renderer, wrap: bool = true) =
         for point in self.points(Vector(x: 0, y: 0)):
             ren.addPoint(point, self.color)
 
-proc updatePos*(self: Figure, offset: Vector, ren: Renderer) =
+proc move*(self: Figure, offset: Vector, ren: Renderer) =
     self.pos = self.pos+offset
-    if self.pos.x > ren.bounds.x: self.pos.x-=ren.bounds.x*2
-    if self.pos.x < -ren.bounds.x: self.pos.x+=ren.bounds.x*2
-    if self.pos.y > ren.bounds.y: self.pos.y-=ren.bounds.y*2
-    if self.pos.y < -ren.bounds.y: self.pos.y+=ren.bounds.y*2
+    if self.wrap:
+        if self.pos.x > ren.bounds.x: self.pos.x-=ren.bounds.x*2
+        if self.pos.x < -ren.bounds.x: self.pos.x+=ren.bounds.x*2
+        if self.pos.y > ren.bounds.y: self.pos.y-=ren.bounds.y*2
+        if self.pos.y < -ren.bounds.y: self.pos.y+=ren.bounds.y*2
 
-    if self.pos.x+self.radius > ren.bounds.x:
-        self.xcopy = -1
-    elif self.pos.x-self.radius < -ren.bounds.x:
-        self.xcopy = 1
-    else:
-        self.xcopy = 0
-    if self.pos.y+self.radius > ren.bounds.y:
-        self.ycopy = -1
-    elif self.pos.y-self.radius < -ren.bounds.y:
-        self.ycopy = 1
-    else:
-        self.ycopy = 0
+        if self.pos.x+self.radius+ren.thickness > ren.bounds.x:
+            self.xcopy = -1
+        elif self.pos.x-self.radius-ren.thickness < -ren.bounds.x:
+            self.xcopy = 1
+        else:
+            self.xcopy = 0
+        if self.pos.y+self.radius+ren.thickness > ren.bounds.y:
+            self.ycopy = -1
+        elif self.pos.y-self.radius-ren.thickness < -ren.bounds.y:
+            self.ycopy = 1
+        else:
+            self.ycopy = 0
 
 
 proc checkSingleCollision(fig1: Figure, fig1offset: Vector, fig2: Figure, fig2offset: Vector): bool =
