@@ -19,6 +19,7 @@ const childOffsets: seq[Vector] = @[
 ]
 
 func update(self: Asteroid, ren: Renderer) =
+    if self.speed.len > 0.001: self.speed = self.speed*0.993
     self.move(self.speed, ren)
     self.angle+=self.rotSpeed
 
@@ -70,7 +71,7 @@ proc checkShoot*(self: AsterManager, projectile: Figure, projSpeed: Vector, ren:
                     xcopy: 0,
                     ycopy: 0,
                     wrap: true,
-                    speed: (oldAster.speed+offset*0.001+projSpeed).toUnit*0.001,
+                    speed: (oldAster.speed+offset*0.01+projSpeed*1.5).toUnit*0.005,
                     rotSpeed: oldAster.rotSpeed*1.1,
                     level: oldAster.level+1,
                     active: true
