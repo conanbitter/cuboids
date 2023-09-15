@@ -3,7 +3,7 @@ import std/sequtils
 
 type Geometry = object
     points: seq[Vector]
-    radius: float
+    radius*: float
 
 func newGeometry*(points: openArray[Vector], closed: bool = true): Geometry {.compileTime.} =
     var maxRadius: float32 = 0
@@ -15,16 +15,16 @@ func newGeometry*(points: openArray[Vector], closed: bool = true): Geometry {.co
     if closed: pointseq.add points[0]
     return Geometry(points: pointseq, radius: maxRadius)
 
-type Figure* = ref object
-    geom: Geometry
+type Figure* = ref object of RootObj
+    geom*: Geometry
     pos*: Vector
     angle*: float32
     scale*: float32
     color*: Color
     radius*: float32
-    xcopy: int
-    ycopy: int
-    wrap: bool
+    xcopy*: int
+    ycopy*: int
+    wrap*: bool
 
 func newFigure*(geometry: Geometry, scale: float32 = 1.0, wrap: bool = true): Figure =
     return Figure(
