@@ -63,7 +63,7 @@ proc checkShoot*(self: AsterManager, projectile: Figure, projSpeed: Vector, ren:
             for offset in childOffsets:
                 let newAsteroid = Asteroid(
                     geom: GEO_ASTER,
-                    pos: oldAster.pos+offset*oldAster.scale,
+                    pos: oldAster.pos+(offset.rotate(oldAster.angle))*oldAster.scale,
                     angle: oldAster.angle,
                     scale: newScale,
                     color: Color(r: 200, g: 200, b: 200, a: 255),

@@ -15,7 +15,7 @@ const keyTable = {
     KeyC: staticglfw.KEY_C
 }.toTable()
 
-const TICK_RATE: float64 = 1.0/10.0
+const TICK_RATE: float64 = 1.0/60.0
 
 type AppWindow* = ref object of RootObj
     window: Window
