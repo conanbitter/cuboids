@@ -15,9 +15,13 @@ const keyTable = {
     KeyC: staticglfw.KEY_C
 }.toTable()
 
+const TICK_RATE: float64 = 1.0/10.0
+
 type AppWindow* = ref object of RootObj
     window: Window
     renderer*: Renderer
+    prevTime: float64
+    elapsed: float64
 
 method onLoad*(wnd: AppWindow){.base.} =
     discard
@@ -55,6 +59,8 @@ proc init*(wnd: AppWindow) =
 
     wnd.window.setWindowUserPointer(addr wnd.renderer)
     discard wnd.window.setWindowSizeCallback(sizeCallback)
+    wnd.elapsed = 0.0
+    wnd.prevTime = getTime()
 
 proc isKeyPressed*(wnd: AppWindow, key: KeyCode): bool =
     return wnd.window.getKey(keyTable[key].cint) == 1
@@ -66,7 +72,13 @@ proc run*(wnd: AppWindow) =
         pollEvents()
         if wnd.window.getKey(KEY_ESCAPE) == 1:
             wnd.window.setWindowShouldClose(1)
-        wnd.onUpdate()
+
+        let newTime = getTime()
+        wnd.elapsed += newTime - wnd.prevTime
+        wnd.prevTime = newTime
+        while wnd.elapsed > TICK_RATE:
+            wnd.onUpdate()
+            wnd.elapsed-=TICK_RATE
 
         wnd.renderer.startRender()
         wnd.onDraw()
