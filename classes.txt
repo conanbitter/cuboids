@@ -1,0 +1,17 @@
+Geometry
+
+Transformation
+
+Figure
+    Projectile
+    WrappableFigure
+        Asteroid
+        Ship
+    
+
+               Ship    Asteroid    Projectile
+Transformation  V         V            V
+Scale           V         V            V
+Move speed      V         V            V
+Rot speed       X         V            X
+Active          X         V            X

@@ -49,6 +49,7 @@ method onUpdate(self: GameWindow) =
         self.projDirection = Vector(x: 0, y: PROJ_SPEED).rotate(self.ship.angle)
         self.projActive = true
 
+    #TODO fire at fixed time rate
     if self.projActive:
         self.proj.move(self.projDirection, self.renderer)
         if self.proj.pos.x-self.proj.radius-self.renderer.thickness > self.renderer.bounds.x or
