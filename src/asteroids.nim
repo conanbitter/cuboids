@@ -2,14 +2,13 @@ import geometry
 import display/[vectors, renderer]
 import constants
 
-type Asteroid = ref object of Figure
+type Asteroid = ref object of WrapFigure
     speed: Vector
     rotSpeed: float32
     level: int
     active: bool
 
-type AsterManager* = ref object
-    items: seq[Asteroid]
+type AsterManager* = seq[Asteroid]
 
 const childOffsets: seq[Vector] = @[
     Vector(x: -0.5, y: -0.5),
@@ -18,68 +17,56 @@ const childOffsets: seq[Vector] = @[
     Vector(x: 0.5, y: -0.5)
 ]
 
-func update(self: Asteroid, ren: Renderer) =
+func update(self: Asteroid) =
     if self.speed.len > 0.001: self.speed = self.speed*0.993
-    self.move(self.speed, ren)
-    self.angle+=self.rotSpeed
+    self.move(self.speed)
+    self.transform.rotate(self.rotSpeed)
 
-func init*(self: AsterManager) =
-    self.items.add Asteroid(
-        geom: GEO_ASTER,
-        pos: Vector(x: 0.5, y: 0),
-        angle: 0,
-        scale: ASTER_SCALE,
-        color: Color(r: 200, g: 200, b: 200, a: 255),
-        radius: GEO_ASTER.radius*ASTER_SCALE,
-        xcopy: 0,
-        ycopy: 0,
-        wrap: true,
-        speed: Vector(x: 0.001, y: 0.001),
-        rotSpeed: 0.01,
-        level: 1,
-        active: true
-    )
+func init*(self: var AsterManager, ren: Renderer) =
+    var newAsteroid = Asteroid()
+    newAsteroid.init(ren, GEO_ASTER, ASTER_SCALE)
+    newAsteroid.transform.pos = Vector(x: 0.5, y: 0)
+    newAsteroid.transform.angle = 0.1
+    newAsteroid.speed = Vector(x: 0.001, y: 0.001)
+    newAsteroid.rotSpeed = 0.01
+    newAsteroid.level = 1
+    newAsteroid.active = true
+    self.add(newAsteroid)
 
-func update*(self: AsterManager, ren: Renderer) =
-    for item in self.items:
-        item.update(ren)
+func update*(self: AsterManager) =
+    for item in self:
+        item.update()
 
-func draw*(self: AsterManager, ren: Renderer) =
-    for item in self.items:
+proc draw*(self: AsterManager) =
+    for item in self:
         if item.active:
-            item.draw(ren)
+            item.draw()
 
-proc checkShoot*(self: AsterManager, projectile: Figure, projSpeed: Vector, ren: Renderer): bool =
-    for i in 0..<self.items.len:
-        if not self.items[i].active:
+proc checkShoot*(self: var AsterManager, projectile: Figure, projSpeed: Vector, ren: Renderer): bool =
+    for i in 0..<self.len:
+        if not self[i].active:
             continue
-        if checkCollision(projectile, self.items[i], ren):
-            if self.items[i].level > 2:
-                self.items[i].active = false
+        if checkCollision(projectile, self[i]):
+            if self[i].level > 2:
+                self[i].active = false
                 return true
             var first = true
-            let newScale = self.items[i].scale/2.0'f32
-            let oldAster = self.items[i]
+            let newScale = self[i].transform.scale/2.0'f32
+            let oldAster = self[i]
             for offset in childOffsets:
-                let newAsteroid = Asteroid(
-                    geom: GEO_ASTER,
-                    pos: oldAster.pos+(offset.rotate(oldAster.angle))*oldAster.scale,
-                    angle: oldAster.angle,
-                    scale: newScale,
-                    color: Color(r: 200, g: 200, b: 200, a: 255),
-                    radius: GEO_ASTER.radius*newScale,
-                    xcopy: 0,
-                    ycopy: 0,
-                    wrap: true,
-                    speed: (oldAster.speed+offset*0.01+projSpeed*1.5).toUnit*0.005,
-                    rotSpeed: oldAster.rotSpeed*1.1,
-                    level: oldAster.level+1,
-                    active: true
-                )
+                let newAsteroid = Asteroid()
+                newAsteroid.init(ren, GEO_ASTER, newScale)
+                newAsteroid.transform.pos = oldAster.transform.apply(offset)
+                newAsteroid.transform.angle = oldAster.transform.angle
+                newAsteroid.speed = (oldAster.speed+offset*0.01+projSpeed*1.5).toUnit*0.005
+                newAsteroid.rotSpeed = oldAster.rotSpeed*1.1
+                newAsteroid.level = oldAster.level+1
+                newAsteroid.active = true
+
                 if first:
-                    self.items[i] = newAsteroid
+                    self[i] = newAsteroid
                     first = false
                 else:
-                    self.items.add newAsteroid
+                    self.add newAsteroid
             return true
     return false
