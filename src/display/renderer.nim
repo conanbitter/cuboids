@@ -2,6 +2,9 @@ import opengl
 import vectors
 import shaders
 
+const MAX_LINE_THICKNESS = 5'f32
+const MIN_LINE_THICKNESS = 1'f32
+
 type RendererState = enum
     Ready, NotReady, DrawingLines, DrawingPoints
 
@@ -159,7 +162,8 @@ proc setViewport*(self: Renderer, width, height: int) =
     let newAr = width.float32/height.float32
     glUniform1f(self.ar_loc, newAr)
     var newThickness = height.float32/thickRate
-    if newThickness < 1.0: newThickness = 1.0
+    if newThickness < MIN_LINE_THICKNESS: newThickness = MIN_LINE_THICKNESS
+    if newThickness > MAX_LINE_THICKNESS: newThickness = MAX_LINE_THICKNESS
     glLineWidth(newThickness)
     glPointSize(newThickness)
     self.thickness = newThickness/height.float32
