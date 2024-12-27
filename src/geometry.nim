@@ -46,7 +46,7 @@ func rotate*(self: Transform, rotation: float32) =
 
 # FIGURE
 
-func init*(self: Figure, ren: Renderer, geometry: Geometry, scale: float32 = 1.0) =
+method init*(self: Figure, ren: Renderer, geometry: Geometry, scale: float32 = 1.0) {.base.} =
     self.renderer = ren
     self.geom = geometry
     self.transform = Transform(
@@ -78,7 +78,7 @@ method move*(self: Figure, offset: Vector) {.base.} =
 
 # WRAP FIGURE
 
-func init*(self: WrapFigure, ren: Renderer, geometry: Geometry, scale: float32 = 1.0) =
+method init*(self: WrapFigure, ren: Renderer, geometry: Geometry, scale: float32 = 1.0) =
     self.Figure.init(ren, geometry, scale)
     self.xcopy = 0
     self.ycopy = 0
