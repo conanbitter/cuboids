@@ -79,7 +79,7 @@ method move*(self: Figure, offset: Vector) {.base.} =
 # WRAP FIGURE
 
 method init*(self: WrapFigure, ren: Renderer, geometry: Geometry, scale: float32 = 1.0) =
-    self.Figure.init(ren, geometry, scale)
+    procCall self.Figure.init(ren, geometry, scale)
     self.xcopy = 0
     self.ycopy = 0
 
